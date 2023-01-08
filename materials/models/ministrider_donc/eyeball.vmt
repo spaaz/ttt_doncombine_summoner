@@ -1,0 +1,6 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "models/ministrider_donc/eyeball"
+	"$surfaceprop" "combine_metal"
+	"$scale" "[1 1]"
+}

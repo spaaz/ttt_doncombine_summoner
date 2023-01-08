@@ -1,0 +1,5 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "models/ministrider_donc/eyesocket"
+	"$surfaceprop" "combine_metal"
+}

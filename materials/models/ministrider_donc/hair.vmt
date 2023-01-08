@@ -1,0 +1,5 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "models/ministrider_donc/hair.vtf"
+	"$surfaceprop" "combine_metal"
+}
