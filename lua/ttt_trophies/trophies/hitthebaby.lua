@@ -12,28 +12,22 @@ function TROPHY:Trigger()
         end
 	end)
     self:AddHook("EntityTakeDamage", function(tgt,dinfo)
-		if tgt:GetClass() == "npc_hunter" then
+		if (tgt:GetClass() == "npc_hunter") and (tgt:GetName() == "Doncombine") then
 			local wep = dinfo:GetInflictor()
 			local att = dinfo:GetAttacker()
-			if att and att:IsPlayer() then
-				wep = att:GetActiveWeapon()
-			elseif wep and wep:IsPlayer() then
+			if IsPlayer(wep) then
 				att = wep
-				wep = wep:GetActiveWeapon()
 			end
-			if wep and att:IsPlayer() and ((!CR_VERSION and !att:IsActiveTraitor()) or (CR_VERSION and (att:IsInnocentTeam()))) then
-				if wep:GetClass() == "weapon_zm_improvised" then
-					if tgt:GetName() == "Doncombine" then
-						if att.doncombinehits < 9 then
-							att.doncombinehits = att.doncombinehits + 1
-						else
-							self:Earn(att)
-						end
+			if IsPlayer(att) and ((not CR_VERSION and not att:IsActiveTraitor()) or (CR_VERSION and (att:IsInnocentTeam()))) then
+				wep = att:GetActiveWeapon()
+				if IsValid(wep) and (wep:GetClass() == "weapon_zm_improvised")  then
+					if att.doncombinehits < 9 then
+						att.doncombinehits = att.doncombinehits + 1
+					else
+						self:Earn(att)
 					end
 				end
 			end	
-			
-
 		end
     end)
 end
