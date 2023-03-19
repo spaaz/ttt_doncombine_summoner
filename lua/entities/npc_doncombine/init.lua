@@ -62,7 +62,7 @@ if ( SERVER ) then
 			NextTime = CurTime() + 0.08
 			for k, ent in ipairs(ents.FindByClass( "npc_doncombine" )) do
 				local npc = ent.npc
-				if npc:IsNPC() then		
+				if IsValid(npc) and npc:IsNPC() then		
 					if engine.ActiveGamemode() == "terrortown" then	
 						for _, ply in ipairs( player.GetAll()) do
 							if ply:Alive() and not ply:IsSpec() then
