@@ -106,9 +106,11 @@ if ( SERVER ) then
 								end
 							end
 						elseif length > 1200 then
-							vec:Normalize()
-							npc:SetLastPosition(pos + (vec * 80) + Vector(0,0,80))
-							npc:SetSchedule(SCHED_FORCED_GO_RUN)
+							if vec.z < 400 and vec.z > -400 then
+								vec:Normalize()
+								npc:SetLastPosition(pos + (vec * 80) + Vector(0,0,80))
+								npc:SetSchedule(SCHED_FORCED_GO_RUN)
+							end
 						end
 					else
 						for _, ent in ipairs(ents.FindInSphere(npc:GetPos(),1200)) do
