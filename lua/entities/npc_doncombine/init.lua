@@ -106,7 +106,7 @@ if ( SERVER ) then
 								end
 							end
 						elseif length > 1200 then
-							if vec.z < 400 and vec.z > -400 then
+							if vec.z < 800 and vec.z > -800 then
 								vec:Normalize()
 								npc:SetLastPosition(pos + (vec * 80) + Vector(0,0,80))
 								npc:SetSchedule(SCHED_FORCED_GO_RUN)
