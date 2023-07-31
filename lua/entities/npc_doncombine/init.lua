@@ -6,7 +6,6 @@ function ENT:SpawnFunction( tr )
 	if not tr.Hit then return end
 	
 	local ent = ents.Create( "npc_doncombine" )
-	---ent:SetPos( tr.HitPos + tr.HitNormal * 8 )
 	ent:Spawn()
 	ent:Activate()
 	
@@ -78,6 +77,50 @@ if ( SERVER ) then
 						if ent2:IsNPC() then
 							npc:AddEntityRelationship(ent2,D_LI,99)
 							ent2:AddEntityRelationship(npc,D_LI,99)
+						end
+					end
+					local enemy = npc:GetEnemy()
+					if IsValid(enemy) and IsEntity(enemy) and enemy:IsPlayer() and (npc:GetEnemyLastTimeSeen()+ 8 > CurTime()) then
+						npc.lastenemy = enemy
+						npc.timerset = false
+						local pos = npc:GetPos()
+						local moveto = enemy:GetPos()
+						local vec = moveto - pos
+						local length = vec:Length() 
+						if npc:GetEnemyLastTimeSeen(enemy) + 1 < CurTime() then
+							local lsp = npc:GetEnemyLastSeenPos(enemy)
+							moveto = lsp - moveto
+							moveto:Normalize()
+							moveto = npc:GetEnemyLastSeenPos(enemy) + (moveto * 30)
+							if moveto then
+								vec = moveto - pos
+								length = vec:Length()
+								if length > 80 then
+									vec:Normalize()
+									npc:SetLastPosition(pos + (vec * 80) + Vector(0,0,80))
+									npc:SetSchedule(SCHED_FORCED_GO_RUN)
+								elseif length <= 80 and length > 30 then
+									vec:Normalize()
+									npc:SetLastPosition(moveto)
+									npc:SetSchedule(SCHED_FORCED_GO_RUN)
+								end
+							end
+						elseif length > 1200 then
+							vec:Normalize()
+							npc:SetLastPosition(pos + (vec * 80) + Vector(0,0,80))
+							npc:SetSchedule(SCHED_FORCED_GO_RUN)
+						end
+					else
+						for _, ent in ipairs(ents.FindInSphere(npc:GetPos(),1200)) do
+							if ent:IsPlayer() and ent:Alive() then
+								local dis = npc:Disposition(ent)
+								if dis == 1 then
+									if npc:IsLineOfSightClear(ent) then
+										npc:SetEnemy( ent )
+										npc:UpdateEnemyMemory( ent, ent:GetPos() )
+									end
+								end
+							end
 						end
 					end
 				end
