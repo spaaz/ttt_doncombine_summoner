@@ -30,6 +30,7 @@ function ENT:Initialize()
 	self.npc:Spawn()
 	self.npc:Activate()
 	self.npc:SetName("Doncombine")
+	self.npc.ScoreName = "Doncombine"
 	--PrintMessage(HUD_PRINTTALK,tostring(self.npc:GetSpawnFlags()))
 	self:SetParent(self.npc)
 	local doncomhealth = GetConVar("ttt_doncombine_health"):GetFloat()
