@@ -28,7 +28,8 @@ end
 	SWEP.Spawnable = true
 	SWEP.AdminOnly = false
 
-	SWEP.HoldType		= "pistol"
+	SWEP.HoldType              = "revolver"
+	SWEP.ReloadHoldType        = "pistol"
 	SWEP.ViewModel  = "models/weapons/v_pist_glock18.mdl"
 	SWEP.WorldModel = "models/weapons/w_pist_glock18.mdl"
 	SWEP.Kind = 42
