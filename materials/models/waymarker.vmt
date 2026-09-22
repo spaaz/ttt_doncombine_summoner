@@ -1,0 +1,6 @@
+"UnlitGeneric"
+{
+	"$basetexture" "models/waymarker"
+	"$translucent" 1
+	"$nocull" 1
+}

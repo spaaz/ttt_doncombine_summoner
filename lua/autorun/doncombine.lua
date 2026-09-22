@@ -6,27 +6,8 @@ local NPC = {	Name = "Doncombine",
 
 list.Set( "NPC", "idoncombine", NPC )
 
-local NPC = {	Name = "Hunter",
-				Class = "npc_hunter",
-				Category = Category }
-
-list.Set( "NPC", "ihunter", NPC )
-
-game.AddParticles( "particles/hunter_flechette.pcf" )
-game.AddParticles( "particles/hunter_intro.pcf" )
-game.AddParticles( "particles/hunter_projectile.pcf" )
-game.AddParticles( "particles/hunter_shield_impact.pcf" )
-
 if SERVER then
   	resource.AddWorkshop( "2457576268" )
-	--SetGlobalBool( "CRismounted", false )
-	--for k, addon in ipairs( engine.GetAddons()) do
-		--if addon.mounted then
-			--if addon.wsid == "2421039084" then
-				--SetGlobalBool( "CRismounted", true )
-			--end
-		--end
-	--end
 end
 
 CreateConVar( "ttt_doncombine_health", 360 ,{ FCVAR_ARCHIVE, FCVAR_NOTIFY }, "Initial health of a Doncombine" )
