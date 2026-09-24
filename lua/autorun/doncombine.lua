@@ -16,6 +16,10 @@ CreateConVar( "ttt_doncombine_is_tracking_shot", 1 ,{ FCVAR_ARCHIVE, FCVAR_NOTIF
 
 CreateConVar( "ttt_doncombine_extra_armor", 1 ,{ FCVAR_ARCHIVE, FCVAR_NOTIFY }, "If the Doncombine has extra armor" )
 
+CreateConVar( "ttt_doncombine_flechette_damage_scale", 1 ,{ FCVAR_ARCHIVE, FCVAR_NOTIFY }, "The damage scale of Doncombine ranged attacks", 0.25, 2.5)
+
+CreateConVar( "ttt_doncombine_melee_damage_scale", 1 ,{ FCVAR_ARCHIVE, FCVAR_NOTIFY }, "The damage scale of Doncombine melee attacks", 0.25, 5)
+
 
 
 

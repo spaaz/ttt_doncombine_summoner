@@ -434,13 +434,25 @@ if SERVER then
 					local pos = npc:GetPos()
 					
 					if hasEnemy then
+						local printEnemy = enemy
+						if (enemy:GetClass() == "npc_bullseye") then
+							enemy.IsBullseye = true
+							if IsValid(enemy:GetParent()) then
+								local parent = enemy:GetParent()
+								enemy:SetPos(parent:GetPos() + Vector(0,0,5))
+								printEnemy = enemy:GetParent()
+								if printEnemy:IsPlayer() then
+									hasPlayerEnemy = true
+								end
+							end
+						end
 						if hasPlayerEnemy then
-							npc:SetNWString("enemyName", enemy:Nick() or "")
+							npc:SetNWString("enemyName", printEnemy:Nick() or "")
 						else
-							if enemy.ScoreName and enemy.ScoreName ~= "" then
-								npc:SetNWString("enemyName", enemy.ScoreName)
+							if printEnemy.ScoreName and printEnemy.ScoreName ~= "" then
+								npc:SetNWString("enemyName", printEnemy.ScoreName)
 							else
-								local className = enemy:GetClass()
+								local className = printEnemy:GetClass()
 								className = className or ""
 								local niceName = GetPrettyClassName(className)
 								npc:SetNWString("enemyName", niceName )
@@ -454,19 +466,26 @@ if SERVER then
 							npc.waypoints = nil
 						end
 						
-						if (npc:GetEnemyLastTimeSeen()+ 5 > CurTime()) then
-							if (nodeCount < 6) and hasPlayerEnemy then
+						local nodeCount2 = ai.GetNodeCount()
+						local maxRange = GetConVar("hunter_flechette_max_range"):GetFloat()
+						local dist = npc:GetPos():Distance(enemy:GetPos())
+						local inFarShootRange = (maxRange < dist) and (dist < (maxRange * 2))
+						local inFarOffRange = dist >= (maxRange * 2)
+
+						if (npc:GetEnemyLastTimeSeen(enemy)+ 5 > CurTime()) and (not npc.ForceNoRun) and (not inFarOffRange) and ((not (inFarShootRange and npc.ShootFar)) or (inFarShootRange and npc.ShootFar)) then
+							if hasPlayerEnemy then
 								npc.lastenemy = enemy
 								npc.timerset = false
 								local moveto = enemy:GetPos()
 								local vec = moveto - pos
 								local length = vec:Length() 
-								if ((npc:GetEnemyLastTimeSeen(enemy) + 1) < CurTime()) then
+								if (npc:GetEnemyLastTimeSeen(enemy) + 1 < CurTime()) then
 									local lsp = npc:GetEnemyLastSeenPos(enemy)
 									moveto = lsp - moveto
 									moveto:Normalize()
 									moveto = npc:GetEnemyLastSeenPos(enemy) + (moveto * 45)
 									if moveto then
+										if (nodeCount < 6) then
 										vec = moveto - pos
 										length = vec:Length()
 										if length > 80 then
@@ -477,6 +496,10 @@ if SERVER then
 											npc:SetLastPosition(moveto)
 											npc:SetSchedule(SCHED_FORCED_GO_RUN)
 										end
+										else
+																					npc:SetLastPosition(moveto)
+											npc:SetSchedule(SCHED_FORCED_GO_RUN)
+										end
 									end
 								elseif length > 1200 then
 									if vec.z < 800 and vec.z > -800 then
@@ -485,6 +508,87 @@ if SERVER then
 										npc:SetSchedule(SCHED_FORCED_GO_RUN)
 									end
 								end			
+							end
+						end	
+						
+						if npc:IsLineOfSightClear(enemy) then
+
+							if maxRange < dist and dist < (maxRange * 2) and (not npc.ShootFar) and (npc:GetEnemyLastSeenPos(enemy)-enemy:GetPos()):Length() < 0.1 then
+								npc.ShootFar = true
+								npc.ForceNoRun = true
+								
+								--Force shoot from far
+								local bullseye = enemy.DoncombineBullseye
+								local pass = true
+								if enemy.IsBullseye then
+									pass = false
+									local parent = enemy:GetParent()
+									if IsValid(parent) then
+										if (parent:IsNPC() or parent:IsPlayer()) and parent:Alive() then
+											enemy = parent
+											pass = true
+										else
+											enemy:Remove()
+										end
+									end
+								end
+								if IsValid(enemy) and (not IsValid(enemy.DoncombineBullseye)) then
+									local targetEnt = ents.Create("npc_bullseye")
+									targetEnt:SetPos(enemy:GetPos()+ Vector(0,0,5))
+									targetEnt:SetKeyValue("spawnflags", 1114112)
+									targetEnt:Spawn()
+									local targetName = "temp_shoot_target_" .. targetEnt:EntIndex()
+									targetEnt:SetName(targetName)
+									targetEnt:SetParent(enemy)
+									npc:AddEntityRelationship(targetEnt,D_HT,99)
+									npc:Fire("UseSiegeTargets", targetName, 0)
+									enemy.DoncombineBullseye = targetEnt
+								elseif IsValid(enemy) and pass then
+									local targetEnt = enemy.DoncombineBullseye
+									if IsValid(targetEnt) then
+										local targetName = targetEnt:GetName()
+										npc:AddEntityRelationship(targetEnt,D_HT,99)
+										npc:Fire("UseSiegeTargets", targetName, 0)
+									end
+								end
+								
+								--Take a break, try and force another run forward sequence
+								timer.Simple( 6, function()
+									if IsValid(npc) then
+										if IsValid(enemy) then
+											npc:Fire("UseSiegeTargets", "", 0)
+											npc:SetEnemy( enemy )
+											npc:UpdateEnemyMemory( enemy, enemy:GetPos() )
+											npc:SetMaxLookDistance(maxRange)						
+										end
+										npc.ForceNoRun = false
+									end
+								end )
+								timer.Simple( 10, function() 
+									if IsValid(npc) then
+										npc.ShootFar = false
+										npc:SetMaxLookDistance(6000)
+									end
+								end )
+								
+							elseif maxRange > dist then
+								if IsValid(enemy.DoncombineBullseye) then
+									local targetEnt = enemy.DoncombineBullseye
+									if IsValid(targetEnt) then
+										enemy.DoncombineBullseye = nil
+										targetEnt:Remove()	
+									end
+								end
+								if IsValid(enemy) and enemy:GetClass() == "npc_bullseye" then
+									if IsValid(enemy:GetParent()) then
+										local newEnemy = enemy:GetParent()
+										npc:Fire("UseSiegeTargets", "", 0)
+										npc:SetEnemy( newEnemy )
+										npc:UpdateEnemyMemory(  newEnemy, newEnemy:GetPos() )
+										enemy:Remove()
+										enemy = newEnemy
+									end
+								end	
 							end
 						end
 					else
@@ -576,7 +680,7 @@ if SERVER then
 							
 						end
 						
-						for _, ent in ipairs(ents.FindInSphere(pos, 1200)) do
+						for _, ent in ipairs(ents.FindInSphere(pos, 2400 )) do
 							if IsValid(ent) and ent:IsNPC() or (ent:IsPlayer() and ent:Alive() and ent:Team() ~= TEAM_SPECTATOR) then
 								local dis = npc:Disposition(ent)
 								if dis == 1 then
@@ -621,11 +725,31 @@ if SERVER then
 						if ent.Owner:GetName() == "Doncombine" then
 							ent.ScoreName = "Doncombine Flechette"
 							local enemy = ent.Owner:GetEnemy()
-							if enemy then
+							
+							if IsValid(enemy) then
+								local eVel = enemy:GetVelocity()
+								local topPos = enemy:OBBMaxs().z
+								if IsValid(enemy:GetParent()) then
+									local parent = enemy:GetParent()
+									eVel = parent:GetVelocity()
+									if enemy:GetClass() == "npc_bullseye" then
+										topPos = parent:OBBMaxs().z
+									end
+								end
+								local heightModifier = 54
+								if topPos then
+									heightModifier = topPos * 0.75 + math.Rand(0, topPos * 0.25)
+								end
+								
+								eVel = eVel * Vector(1,1,0)
+								local eLength = eVel:Length()
+								eVel:Normalize()
+								local comp = eVel * eLength * 0.2
 								if !(ent:GetMoveType() == MOVETYPE_NONE) then
 									local Vel = ent:GetAbsVelocity()
 									if Vel:Length()>500 then
-										local VelMod = enemy:GetPos() + Vector(math.random(-2,2),math.random(-2,2),25 + math.random(20)) - ent:GetPos()
+										local zFactor = (enemy:GetClass() ~= "npc_bullseye") and heightModifier or heightModifier - 5
+										local VelMod = enemy:GetPos() + Vector(math.random(-2,2),math.random(-2,2),zFactor) + comp - ent:GetPos()
 										local LenMod = VelMod:Length()*-2 + 2000
 										if LenMod > 0 then
 
@@ -659,6 +783,7 @@ if SERVER then
 		
 			local attClass = att:GetClass()
 			local targetClass = target:GetClass()
+			local infClass = dmginfo:GetInflictor():GetClass()
 			
 			if attClass == "npc_hunter" and att:GetName() == "Doncombine" then
 				if CR_VERSION and engine.ActiveGamemode() == "terrortown" then
@@ -668,6 +793,11 @@ if SERVER then
 						end
 					end
 				end
+				if infClass == "hunter_flechette" then
+					dmginfo:ScaleDamage(GetConVar("ttt_doncombine_flechette_damage_scale"):GetFloat())
+				else
+					dmginfo:ScaleDamage(GetConVar("ttt_doncombine_melee_damage_scale"):GetFloat())
+				end		
 				if targetClass == "npc_antlionguard" then
 					dmginfo:SetDamage(0)
 				end			
@@ -703,4 +833,5 @@ if SERVER then
 	end
 
 	hook.Add( "EntityTakeDamage", "DoncombineDamage", DoncombineDamage)
+	
 end
