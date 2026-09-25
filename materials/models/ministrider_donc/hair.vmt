@@ -1,5 +1,6 @@
 "VertexLitGeneric"
 {
-	"$basetexture" "models/ministrider_donc/hair.vtf"
+	"$basetexture" "models/ministrider_donc/hair"
+	"$bumpmap" "models/ministrider_donc/hair_normal"
 	"$surfaceprop" "combine_metal"
 }
