@@ -2,6 +2,12 @@ if SERVER then
 	AddCSLuaFile()
 end
 
+	
+local isTTT = false
+if engine.ActiveGamemode() == "terrortown" then
+	isTTT = true
+end
+
 if CLIENT then
 	SWEP.PrintName       = "DoncomSummoner"
 	SWEP.ShopName = "Doncombine Summoner"
@@ -70,7 +76,7 @@ function SWEP:PrimaryAttack()
         if spawnereasd == false then
 			ply:PrintMessage(HUD_PRINTTALK, "Can't Place there." )
         else
-			if engine.ActiveGamemode() == "terrortown" then
+			if isTTT then
 				self:TakePrimaryAmmo(1)
 			end
 			
@@ -87,7 +93,7 @@ end
 
 function SWEP:Equip()
 	if ( not IsValid( self.Owner ) ) then return end
-		if engine.ActiveGamemode() == "terrortown" then
+		if isTTT then
 			self.Owner:PrintMessage(HUD_PRINTTALK, "Doncombine Summoner:\nSummons a Doncombine hostile to everyone except\nyou and any traitor teamates you may have.")
 		end
 end
@@ -133,10 +139,12 @@ function place_doncom( tracedata, self, owner )
 
 	if tracedata.pos then
 		self.doncom:SetPos( tracedata.pos )
+		--[[
 		local isTTT = false
 		if engine.ActiveGamemode() == "terrortown" then
 			isTTT = true
 		end
+		--]]
 		local isTraitor = false
 		local savedTeam = nil
 		if IsValid(owner) then
@@ -333,13 +341,12 @@ if CLIENT then
             surface.PlaySound("buttons/button2.wav")
         end
     end)
-
+	
+	
+		
 	local function DrawDoncombineSprites()
 		local client = LocalPlayer()
-		local isTTT = false
-		if engine.ActiveGamemode() == "terrortown" then
-			isTTT = true
-		end
+
 		if (CR_VERSION and isTTT) and client:IsJesterTeam() then return end
 		if isTTT and (not client:IsActive()) and (not (client:IsTraitor() or (CR_VERSION and client:IsTraitorTeam()))) then return end
 
@@ -388,11 +395,12 @@ if CLIENT then
 			end
 			for _, npc in ipairs(ents.FindByClass( "npc_hunter" )) do
 				if IsValid(npc) and npc:GetNWBool("doncombine", false) then
-					
+					--[[
 					local isTTT = false
 					if engine.ActiveGamemode() == "terrortown" then
 						isTTT = true
 					end
+					--]]
 		
 					local Summoner = npc:GetNWEntity( "Summoner", nil )
 					local savedTeam = npc:GetNWInt( "savedTeam", -1 )

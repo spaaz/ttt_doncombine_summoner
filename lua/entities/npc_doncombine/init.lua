@@ -5,6 +5,11 @@ if SERVER then
 	AddCSLuaFile()
 end
 
+local isTTT = false
+if engine.ActiveGamemode() == "terrortown" then
+	isTTT = true
+end
+
 function ENT:SpawnFunction( tr )
 
 	if not tr.Hit then return end
@@ -93,11 +98,6 @@ if SERVER then
 				net.Send(ply)
 			end
 			previousActiveWeapons[ply] = hasSummoner
-			
-			local isTTT = false
-			if engine.ActiveGamemode() == "terrortown" then
-				isTTT = true
-			end
 
 			-- If holding the summoner, compile and send unique nested waypoint segments
 			if hasSummoner then
@@ -197,11 +197,12 @@ if SERVER then
         ply.targetPos = nil
 
         if not targetEnt and not targetPos then return end
-		
+		--[[
 		local isTTT = false
 		if engine.ActiveGamemode() == "terrortown" then
 			isTTT = true
 		end
+		--]]
 
         -- 1. Identify if the player is a traitor or standard summoner
         local isTraitor = isTTT and (ply:IsActiveTraitor() or (CR_VERSION and ply:IsActiveTraitorTeam()))
@@ -396,7 +397,7 @@ if SERVER then
 			for k, ent in ipairs(ents.FindByClass( "npc_doncombine" )) do
 				local npc = ent.npc
 				if IsValid(npc) and npc:IsNPC() then		
-					if engine.ActiveGamemode() == "terrortown" then	
+					if isTTT then	
 						for _, ply in ipairs( player.GetAll()) do
 							if ply:IsActive() then
 								if npc.WasTraitorSummon then
@@ -786,7 +787,7 @@ if SERVER then
 			local infClass = dmginfo:GetInflictor():GetClass()
 			
 			if attClass == "npc_hunter" and att:GetName() == "Doncombine" then
-				if CR_VERSION and engine.ActiveGamemode() == "terrortown" then
+				if CR_VERSION and isTTT then
 					if target:IsPlayer() then
 						if target:IsJesterTeam() or att.savedTeam == ROLE_TEAM_JESTER then
 							dmginfo:SetDamage(0)
@@ -802,7 +803,7 @@ if SERVER then
 					dmginfo:SetDamage(0)
 				end			
 			elseif attClass == "npc_antlionguard" then
-				if CR_VERSION and engine.ActiveGamemode() == "terrortown" then
+				if CR_VERSION and isTTT then
 					if target:IsPlayer() then
 						if target:IsJesterTeam() then
 							dmginfo:SetDamage(0)
@@ -822,7 +823,7 @@ if SERVER then
 					dmginfo:ScaleDamage( dmginfo:GetDamage()/24 )
 				end
 			end
-			if CR_VERSION and engine.ActiveGamemode() == "terrortown" then
+			if CR_VERSION and isTTT then
 				if att:IsPlayer() then
 					if att:IsJesterTeam() then
 						dmginfo:SetDamage(0)
